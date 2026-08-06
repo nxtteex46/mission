@@ -180,6 +180,10 @@ button {
   padding: 16px 16px 142px;
 }
 
+.joined-content {
+  padding-bottom: 62px;
+}
+
 .intro {
   align-items: center;
   display: flex;
@@ -233,11 +237,6 @@ button {
   width: 100%;
 }
 
-.join-card.is-joined {
-  background: #fff6f6;
-  outline: 1px solid #ffd8d8;
-}
-
 .join-card h3 {
   font-size: 16px;
   font-weight: 600;
@@ -251,6 +250,210 @@ button {
   font-weight: 500;
   line-height: 20px;
   margin: 0;
+}
+
+.progress-card {
+  background: #ffffff;
+  border: 1px solid #e6e6e6;
+  border-radius: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 8px;
+  overflow: hidden;
+  padding: 16px;
+  text-align: left;
+  width: 100%;
+}
+
+.progress-header {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  overflow: hidden;
+  white-space: nowrap;
+  width: 100%;
+}
+
+.progress-header h3 {
+  color: #252525;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+  margin: 0;
+}
+
+.progress-header p {
+  color: var(--faint);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 16px;
+  margin: 0;
+  text-align: right;
+}
+
+.progress-track {
+  height: 70px;
+  position: relative;
+  width: 100%;
+}
+
+.dot-run {
+  height: 5px;
+  position: absolute;
+  top: 25.5px;
+  width: 58px;
+}
+
+.run-1 {
+  left: 14px;
+}
+
+.run-2 {
+  left: 104px;
+}
+
+.run-3 {
+  left: 194px;
+}
+
+.progress-start {
+  height: 24px;
+  left: 0;
+  position: absolute;
+  top: 16px;
+  width: 24px;
+}
+
+.milestone {
+  position: absolute;
+  top: 14px;
+}
+
+.milestone span {
+  align-items: center;
+  background: #ffffff;
+  border: 1.5px solid #dcdcdc;
+  border-radius: 14px;
+  display: flex;
+  height: 28px;
+  justify-content: center;
+  overflow: hidden;
+  width: 28px;
+}
+
+.milestone img {
+  display: block;
+  height: 14px;
+  width: 12px;
+}
+
+.milestone p {
+  color: var(--faint);
+  font-size: 11px;
+  font-weight: 500;
+  left: 50%;
+  line-height: 16px;
+  margin: 8px 0 0;
+  position: absolute;
+  text-align: center;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  width: 60px;
+}
+
+.milestone-1 {
+  left: 87px;
+}
+
+.milestone-2 {
+  left: 177px;
+}
+
+.milestone-3 {
+  left: 267px;
+}
+
+.more-tiers {
+  height: 4px;
+  left: 302px;
+  position: absolute;
+  top: 26px;
+  width: 22px;
+}
+
+.progress-divider {
+  background: #f0f0f0;
+  height: 1px;
+  width: 100%;
+}
+
+.next-reward {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  overflow: hidden;
+  width: 100%;
+}
+
+.next-reward-thumb {
+  border-radius: 8px;
+  flex-shrink: 0;
+  height: 44px;
+  overflow: hidden;
+  position: relative;
+  width: 44px;
+}
+
+.next-reward-thumb img {
+  border-radius: 8px;
+  height: 100%;
+  left: 0;
+  object-fit: cover;
+  position: absolute;
+  top: 0;
+  width: 100%;
+}
+
+.next-reward-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.next-reward-text p {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 16px;
+  margin: 0;
+}
+
+.next-reward-text h4 {
+  color: #252525;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 20px;
+  margin: 0;
+}
+
+.next-pill {
+  align-items: center;
+  border: 1px solid #e6e6e6;
+  border-radius: 9999px;
+  color: #252525;
+  display: flex;
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 600;
+  height: 32px;
+  justify-content: center;
+  line-height: 18px;
+  padding: 0 12px;
+  white-space: nowrap;
 }
 
 .terms-button {
@@ -399,10 +602,6 @@ button {
   line-height: 24px;
   padding: 0 16px;
   width: 100%;
-}
-
-.join-button.joined {
-  background: #252525;
 }
 
 .cta-bar p {

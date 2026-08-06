@@ -100,7 +100,7 @@ export default function Home() {
           className="offer-image"
         />
 
-        <div className="content">
+        <div className={joined ? "content joined-content" : "content"}>
           <section className="intro">
             <p className="mission-type">SHOP MISSON</p>
             <div className="offer-info">
@@ -108,16 +108,7 @@ export default function Home() {
               <p className="date">15 ก.ค. 69 – 30 ก.ย. 69</p>
             </div>
 
-            <div className={`join-card ${joined ? "is-joined" : ""}`}>
-              <h3>
-                {joined
-                  ? "เริ่มสะสมภารกิจแล้ว"
-                  : "เข้าร่วมภารกิจเพื่อเริ่มภารกิจ"}
-              </h3>
-              <p>
-                ใช้จ่ายร้านอาหารในศูนย์ฯ ครบทุก 400 บาท รับ 1 ดวง แลกรางวัลได้สูงสุด 9 รายการ
-              </p>
-            </div>
+            {joined ? <ProgressCard /> : <JoinPrompt />}
 
             <p className="description">
               ช้อปร้านอาหารในศูนย์ฯ ครบทุก 400 บาท รับ 1 ดวง สะสมครบตามขั้นเพื่อรับรางวัล
@@ -156,20 +147,76 @@ export default function Home() {
           </section>
         </div>
 
-        <div className="cta-bar">
-          <button
-            className={joined ? "join-button joined" : "join-button"}
-            type="button"
-            onClick={() => setJoined((value) => !value)}
-          >
-            {joined ? "เข้าร่วมแล้ว" : "เข้าร่วมภารกิจ"}
-          </button>
-          <p>เข้าร่วมครั้งเดียว ระบบบันทึกความคืบหน้าให้อัตโนมัติ</p>
-        </div>
+        {!joined && (
+          <div className="cta-bar">
+            <button
+              className="join-button"
+              type="button"
+              onClick={() => setJoined(true)}
+            >
+              เข้าร่วมภารกิจ
+            </button>
+            <p>เข้าร่วมครั้งเดียว ระบบบันทึกความคืบหน้าให้อัตโนมัติ</p>
+          </div>
+        )}
         <div className="home-indicator" aria-hidden="true">
           <span />
         </div>
       </section>
     </main>
+  );
+}
+
+function JoinPrompt() {
+  return (
+    <div className="join-card">
+      <h3>เข้าร่วมภารกิจเพื่อเริ่มภารกิจ</h3>
+      <p>
+        ใช้จ่ายร้านอาหารในศูนย์ฯ ครบทุก 400 บาท รับ 1 ดวง แลกรางวัลได้สูงสุด 9 รายการ
+      </p>
+    </div>
+  );
+}
+
+function ProgressCard() {
+  return (
+    <div className="progress-card" aria-label="ความคืบหน้าภารกิจ">
+      <div className="progress-header">
+        <h3>สะสมแล้ว 0/20 ดวง</h3>
+        <p>ได้รับแล้ว 0/8</p>
+      </div>
+
+      <div className="progress-track" aria-hidden="true">
+        <img className="dot-run run-1" src="/m-card/dot-run.svg" alt="" />
+        <img className="dot-run run-2" src="/m-card/dot-run-alt.svg" alt="" />
+        <img className="dot-run run-3" src="/m-card/dot-run.svg" alt="" />
+        <img className="progress-start" src="/m-card/progress-start.svg" alt="" />
+
+        {[3, 5, 7].map((tier, index) => (
+          <div className={`milestone milestone-${index + 1}`} key={tier}>
+            <span>
+              <img src="/m-card/lock.svg" alt="" />
+            </span>
+            <p>{tier} ดวง</p>
+          </div>
+        ))}
+
+        <img className="more-tiers" src="/m-card/more-tiers.svg" alt="" />
+      </div>
+
+      <div className="progress-divider" />
+
+      <div className="next-reward">
+        <div className="next-reward-thumb">
+          <img src="/m-card/progress-reward-thumb.png" alt="" />
+          <img src="/m-card/progress-reward-thumb-overlay.png" alt="" />
+        </div>
+        <div className="next-reward-text">
+          <p>รางวัลถัดไป</p>
+          <h4>คูปองส่วนลดร้าน OH JUICE มูลค่า 100 บาท</h4>
+        </div>
+        <span className="next-pill">อีก 3 ดวง</span>
+      </div>
+    </div>
   );
 }
