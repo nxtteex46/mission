@@ -141,18 +141,6 @@ export default function Home() {
     <main className="prototype-stage">
       <section className="phone-shell" aria-label={screen === "detail" ? "M Card mission detail" : "Shop Mission list"}>
         <div className="top-chrome">
-          <div className="status-bar" aria-hidden="true">
-            <span className="status-time">9:41</span>
-            <div className="status-levels">
-              <img src="/m-card/cellular.svg" alt="" className="cellular" />
-              <img src="/m-card/wifi.svg" alt="" className="wifi" />
-              <div className="battery">
-                <span />
-                <img src="/m-card/cap.svg" alt="" />
-              </div>
-            </div>
-          </div>
-
           <header className="app-header">
             <button
               className="icon-button"
@@ -251,7 +239,17 @@ export default function Home() {
                           <p className="reward-title">{reward.title}</p>
                           <div className="reward-meta">
                             <span>{reward.remaining}</span>
-                            <RewardAction joined={joined} reward={reward} stars={stars} />
+                            <RewardAction
+                              claimedThresholds={claimedProgressThresholds}
+                              joined={joined}
+                              reward={reward}
+                              stars={stars}
+                              onClaimReward={(threshold) =>
+                                setClaimedProgressThresholds((thresholds) =>
+                                  thresholds.includes(threshold) ? thresholds : [...thresholds, threshold],
+                                )
+                              }
+                            />
                           </div>
                         </div>
                       </div>
@@ -280,16 +278,19 @@ export default function Home() {
           <MissionListPage
             joined={joined}
             onOpenDetail={() => setScreen("detail")}
+            stars={stars}
           />
         )}
 
-        <div className="home-indicator" aria-hidden="true">
-          <span />
-        </div>
-
         {showCollectedRewards && (
           <CollectedRewardsSheet
+            claimedThresholds={claimedProgressThresholds}
             stars={stars}
+            onClaimReward={(threshold) =>
+              setClaimedProgressThresholds((thresholds) =>
+                thresholds.includes(threshold) ? thresholds : [...thresholds, threshold],
+              )
+            }
             onClose={() => setShowCollectedRewards(false)}
           />
         )}
@@ -330,9 +331,11 @@ const missionCards = [
 function MissionListPage({
   joined,
   onOpenDetail,
+  stars,
 }: {
   joined: boolean;
   onOpenDetail: () => void;
+  stars: number;
 }) {
   const [activeTab, setActiveTab] = useState<"all" | "joined">("all");
   const showingJoinedOnly = activeTab === "joined";
@@ -393,6 +396,7 @@ function MissionListPage({
           <EatventureMissionCard
             joined={joined}
             onOpenDetail={onOpenDetail}
+            stars={stars}
           />
         )}
 
@@ -409,10 +413,19 @@ function MissionListPage({
 function EatventureMissionCard({
   joined,
   onOpenDetail,
+  stars,
 }: {
   joined: boolean;
   onOpenDetail: () => void;
+  stars: number;
 }) {
+  const trackPoints = getTrackPoints(stars);
+  const progressPercent = getTrackProgressPercent(stars, trackPoints);
+  const progressRatio = progressPercent / 100;
+  const isEmptyProgress = stars === 0;
+  const hasMoreTiers = trackPoints[trackPoints.length - 1].threshold < 20;
+  const trackRange = hasMoreTiers ? "100% - 70px" : "100% - 28px";
+
   return (
     <article className="mission-card is-featured" onClick={onOpenDetail}>
       <div className="mission-card-header">
@@ -423,30 +436,48 @@ function EatventureMissionCard({
         </div>
       </div>
       {joined && (
-        <div className="mission-mini-progress" aria-hidden="true">
+        <div className={hasMoreTiers ? "mission-mini-progress has-more-tiers" : "mission-mini-progress"}>
+          <div className="mini-progress-header">
+            <span>ความคืบหน้า</span>
+            <strong>{stars}/20</strong>
+          </div>
           <div className="mini-track-rail">
             <span />
           </div>
+          {!isEmptyProgress && (
+            <div
+              className="mini-track-done"
+              style={{ width: `calc((${trackRange}) * ${progressRatio})` }}
+            />
+          )}
           <div className="mini-track-points">
-            {[
-              { threshold: 0, label: "" },
-              { threshold: 3, label: "3 ดวง" },
-              { threshold: 5, label: "5 ดวง" },
-              { threshold: 7, label: "7 ดวง" },
-            ].map((point) => (
-              <div className={point.threshold === 0 ? "mini-point is-empty" : "mini-point"} key={point.threshold}>
-                <span>
-                  {point.threshold > 0 && <img src="/m-card/locked-gift.svg" alt="" />}
-                </span>
-                <p>{point.label}</p>
-              </div>
-            ))}
+            {trackPoints.map((point) => {
+              const isUnlocked = point.kind === "reward" && stars >= point.threshold;
+
+              return (
+                <div
+                  className={`mini-point ${point.kind === "empty" ? "is-empty" : ""} ${
+                    isUnlocked ? "is-claimed" : ""
+                  }`}
+                  key={point.threshold}
+                >
+                  <span>
+                    {point.kind === "reward" && (
+                      <img src={isUnlocked ? "/m-card/claimed-gift.svg" : "/m-card/locked-gift.svg"} alt="" />
+                    )}
+                  </span>
+                  <p>{point.label}</p>
+                </div>
+              );
+            })}
           </div>
-          <div className="mini-more-tiers">
-            <span />
-            <span />
-            <span />
-          </div>
+          {hasMoreTiers && (
+            <div className="mini-more-tiers">
+              <span />
+              <span />
+              <span />
+            </div>
+          )}
         </div>
       )}
       <div className="mission-meta-strip">
@@ -499,11 +530,15 @@ function TermsSheet({ onClose }: { onClose: () => void }) {
 }
 
 function RewardAction({
+  claimedThresholds,
   joined,
+  onClaimReward,
   reward,
   stars,
 }: {
+  claimedThresholds: number[];
   joined: boolean;
+  onClaimReward: (threshold: number) => void;
   reward: Reward;
   stars: number;
 }) {
@@ -531,8 +566,16 @@ function RewardAction({
     );
   }
 
+  if (claimedThresholds.includes(reward.threshold)) {
+    return (
+      <button className="reward-pill claimed" type="button" disabled>
+        รับแล้ว
+      </button>
+    );
+  }
+
   return (
-    <button className="reward-pill active" type="button">
+    <button className="reward-pill active" type="button" onClick={() => onClaimReward(reward.threshold)}>
       รับรางวัล
     </button>
   );
@@ -568,12 +611,25 @@ function ProgressCard({
   onRemoveStar: () => void;
   onReset: () => void;
 }) {
+  const claimableThresholds = Array.from(
+    new Set(
+      rewards
+        .filter((reward) => reward.remaining !== "ผู้ใช้สิทธิ์ครบแล้ว")
+        .map((reward) => reward.threshold),
+    ),
+  );
+  const hasClaimedAllAvailableRewards = claimableThresholds.every((threshold) =>
+    claimedThresholds.includes(threshold),
+  );
   const claimableReward = rewards.find(
-    (reward) => stars >= reward.threshold && !claimedThresholds.includes(reward.threshold),
+    (reward) =>
+      stars >= reward.threshold &&
+      reward.remaining !== "ผู้ใช้สิทธิ์ครบแล้ว" &&
+      !claimedThresholds.includes(reward.threshold),
   );
   const displayReward =
     claimableReward ??
-    rewards.find((reward) => reward.threshold > stars) ??
+    rewards.find((reward) => reward.threshold > stars && reward.remaining !== "ผู้ใช้สิทธิ์ครบแล้ว") ??
     rewards[rewards.length - 1];
   const remainingStars = Math.max(displayReward.threshold - stars, 0);
   const canClaimDisplayedReward = Boolean(claimableReward);
@@ -625,18 +681,20 @@ function ProgressCard({
 
           <div className="track-points">
             {trackPoints.map((point) => {
-              const isClaimed = point.kind === "reward" && stars >= point.threshold;
+              const isClaimed = point.kind === "reward" && claimedThresholds.includes(point.threshold);
+              const isUnlocked = point.kind === "reward" && stars >= point.threshold;
 
               return (
                 <div
                   className={`track-point ${point.kind === "empty" ? "is-empty" : ""} ${
-                    isClaimed ? "is-claimed" : ""
+                    isUnlocked ? "is-claimed" : ""
+                  } ${isClaimed ? "is-received" : ""
                   }`}
                   key={point.threshold}
                 >
                   <span>
                     {point.kind === "reward" && (
-                      <img src={isClaimed ? "/m-card/claimed-gift.svg" : "/m-card/locked-gift.svg"} alt="" />
+                      <img src={isUnlocked ? "/m-card/claimed-gift.svg" : "/m-card/locked-gift.svg"} alt="" />
                     )}
                   </span>
                   <p>{point.label}</p>
@@ -655,29 +713,44 @@ function ProgressCard({
 
         <div className="progress-divider" />
 
-        <div className="next-reward">
-          <div className="next-reward-thumb">
-            <img src={displayReward.progressImage ?? displayReward.image} alt="" />
-            {displayReward.progressImageOverlay && (
-              <img src={displayReward.progressImageOverlay} alt="" />
-            )}
+        {hasClaimedAllAvailableRewards ? (
+          <div className="next-reward is-complete">
+            <div className="next-reward-thumb">
+              <img src="/m-card/reward-complete.png" alt="" />
+            </div>
+            <div className="next-reward-text">
+              <p>รับครบแล้ว</p>
+              <h4>คุณรับรางวัลที่ปลดล็อกครบทั้งหมดแล้ว</h4>
+            </div>
+            <button className="next-pill complete" type="button" disabled>
+              ครบแล้ว
+            </button>
           </div>
-          <div className="next-reward-text">
-            <p>{canClaimDisplayedReward ? "ปลดล็อกแล้ว" : "รางวัลถัดไป"}</p>
-            <h4>{displayReward.title.replace("\n", " ")}</h4>
+        ) : (
+          <div className="next-reward">
+            <div className="next-reward-thumb">
+              <img src={displayReward.progressImage ?? displayReward.image} alt="" />
+              {displayReward.progressImageOverlay && (
+                <img src={displayReward.progressImageOverlay} alt="" />
+              )}
+            </div>
+            <div className="next-reward-text">
+              <p>{canClaimDisplayedReward ? "ปลดล็อกแล้ว" : "รางวัลถัดไป"}</p>
+              <h4>{displayReward.title.replace("\n", " ")}</h4>
+            </div>
+            <button
+              className={canClaimDisplayedReward ? "next-pill active" : "next-pill"}
+              type="button"
+              onClick={() => {
+                if (canClaimDisplayedReward) {
+                  onClaimReward(displayReward.threshold);
+                }
+              }}
+            >
+              {canClaimDisplayedReward ? "รับรางวัล" : `อีก ${remainingStars} ดวง`}
+            </button>
           </div>
-          <button
-            className={canClaimDisplayedReward ? "next-pill active" : "next-pill"}
-            type="button"
-            onClick={() => {
-              if (canClaimDisplayedReward) {
-                onClaimReward(displayReward.threshold);
-              }
-            }}
-          >
-            {canClaimDisplayedReward ? "รับรางวัล" : `อีก ${remainingStars} ดวง`}
-          </button>
-        </div>
+        )}
       </div>
 
       <div className="tester-controls" aria-label="ตัวช่วยทดสอบจำนวนดาว">
@@ -696,16 +769,47 @@ function ProgressCard({
 }
 
 function CollectedRewardsSheet({
+  claimedThresholds,
   stars,
+  onClaimReward,
   onClose,
 }: {
+  claimedThresholds: number[];
   stars: number;
+  onClaimReward: (threshold: number) => void;
   onClose: () => void;
 }) {
-  const milestones = [0, ...getRewardGroups().map((group) => group.threshold)];
-  const unlockedCount = milestones.filter((milestone) => milestone > 0 && stars >= milestone).length;
-  const nextMilestone = milestones.find((milestone) => milestone > stars && milestone > 0);
   const rewardGroups = getRewardGroups();
+  const milestones = rewardGroups.map((group) => group.threshold);
+  const unlockedCount = milestones.filter((milestone) => stars >= milestone).length;
+  const nextMilestone = milestones.find((milestone) => milestone > stars);
+  const claimableThresholds = Array.from(
+    new Set(
+      rewards
+        .filter((reward) => reward.remaining !== "ผู้ใช้สิทธิ์ครบแล้ว")
+        .map((reward) => reward.threshold),
+    ),
+  );
+  const hasClaimedAllAvailableRewards = claimableThresholds.every((threshold) =>
+    claimedThresholds.includes(threshold),
+  );
+  const claimableReward = rewards.find(
+    (reward) =>
+      stars >= reward.threshold &&
+      reward.remaining !== "ผู้ใช้สิทธิ์ครบแล้ว" &&
+      !claimedThresholds.includes(reward.threshold),
+  );
+  const displayReward =
+    claimableReward ??
+    rewards.find((reward) => reward.threshold > stars && reward.remaining !== "ผู้ใช้สิทธิ์ครบแล้ว") ??
+    rewards[rewards.length - 1];
+  const remainingStars = Math.max(displayReward.threshold - stars, 0);
+  const canClaimDisplayedReward = Boolean(claimableReward);
+  const snakeRows = [
+    [{ threshold: 0, kind: "start" as const }, ...rewardGroups.slice(0, 3)],
+    rewardGroups.slice(3, 7).reverse(),
+    rewardGroups.slice(7, 8),
+  ];
 
   return (
     <div className="sheet-backdrop" role="presentation" onClick={onClose}>
@@ -719,67 +823,96 @@ function CollectedRewardsSheet({
         <div className="sheet-handle" aria-hidden="true" />
         <header className="sheet-header">
           <div>
-            <h2>Progress สะสม</h2>
+            <h2>สะสมแล้ว {stars}/20 ดวง</h2>
             <p>
               ปลดล็อกแล้ว {unlockedCount}/8 ขั้น
-              {nextMilestone ? ` · อีก ${nextMilestone - stars} ดวงถึงขั้นถัดไป` : " · ครบทุกขั้นแล้ว"}
+              {nextMilestone ? ` · อีก ${nextMilestone - stars} ดวงถึงรางวัลถัดไป` : " · ครบทุกขั้นแล้ว"}
             </p>
           </div>
-          <button type="button" onClick={onClose} aria-label="ปิดรายการรางวัล">
-            ปิด
+          <button className="sheet-close-icon" type="button" onClick={onClose} aria-label="ปิดรายการรางวัล">
+            <img src="/m-card/terms-close.svg" alt="" />
           </button>
         </header>
 
-        <div className="sheet-progress-summary">
-          <div className="sheet-progress-copy">
-            <span>{stars}/20 ดวง</span>
-            <strong>{Math.round((stars / 20) * 100)}%</strong>
-          </div>
-          <div className="sheet-progress-bar" aria-hidden="true">
-            <span style={{ width: `${(stars / 20) * 100}%` }} />
-          </div>
-        </div>
+        <div className="snake-map" aria-label="แผนที่สะสมรางวัลทั้งหมด">
+          {snakeRows.map((row, rowIndex) => (
+            <div
+              className={`snake-row snake-row-${rowIndex + 1} ${
+                (rowIndex === 0 && stars >= 10) || (rowIndex === 1 && stars >= 20) ? "is-bridge-active" : ""
+              }`}
+              key={rowIndex}
+            >
+              {row.length > 1 && (
+                <span
+                  className="snake-line-fill"
+                  style={{ width: `calc((75% - 42px) * ${getSnakeRowProgress(rowIndex, stars) / 100})` }}
+                />
+              )}
+              {row.map((group) => {
+                const isStart = "kind" in group && group.kind === "start";
+                const isClaimed = !isStart && claimedThresholds.includes(group.threshold);
+                const isUnlocked = !isStart && stars >= group.threshold;
 
-        <div className="sheet-timeline" aria-label="รายการ progress สะสมทั้งหมด">
-          {rewardGroups.map((group) => {
-            const isUnlocked = stars >= group.threshold;
-            const isNext = nextMilestone === group.threshold;
-            const statusText = isUnlocked
-              ? "ปลดล็อกแล้ว"
-              : isNext
-                ? `อีก ${group.threshold - stars} ดวง`
-                : "ยังไม่ถึงขั้น";
-
-            return (
-              <article
-                className={`timeline-item ${isUnlocked ? "is-unlocked" : ""} ${isNext ? "is-next" : ""}`}
-                key={group.threshold}
-              >
-                <div className="timeline-marker" aria-hidden="true">
-                  <span>{isUnlocked ? "✓" : group.threshold}</span>
-                </div>
-                <div className="timeline-content">
-                  <div className="timeline-item-header">
-                    <div>
-                      <p>สะสมครบ {group.threshold} ดวง</p>
-                      <h3>{statusText}</h3>
+                return (
+                  <div
+                    className={`snake-node ${isStart ? "is-start" : ""} ${isClaimed ? "is-claimed" : ""} ${
+                      isUnlocked && !isClaimed ? "is-unlocked" : ""
+                    }`}
+                    key={group.threshold}
+                  >
+                    <div className="snake-dot">
+                      {!isStart && (
+                        <img src={isUnlocked ? "/m-card/claimed-gift.svg" : "/m-card/locked-gift.svg"} alt="" />
+                      )}
                     </div>
-                    <button className={isUnlocked ? "timeline-claim active" : "timeline-claim"} type="button">
-                      {isUnlocked ? "รับได้" : "ล็อก"}
-                    </button>
+                    <p>{isStart ? "" : `${group.threshold} ดวง`}</p>
                   </div>
-
-                  {group.rewards.map((reward) => (
-                    <div className="timeline-reward" key={reward.title}>
-                      <img src={reward.image} alt="" />
-                      <p>{reward.title.replace("\n", " ")}</p>
-                    </div>
-                  ))}
-                </div>
-              </article>
-            );
-          })}
+                );
+              })}
+            </div>
+          ))}
         </div>
+
+        <div className="progress-divider" />
+
+        {hasClaimedAllAvailableRewards ? (
+          <div className="next-reward sheet-next-reward is-complete">
+            <div className="next-reward-thumb">
+              <img src="/m-card/reward-complete.png" alt="" />
+            </div>
+            <div className="next-reward-text">
+              <p>รับครบแล้ว</p>
+              <h4>คุณรับรางวัลที่ปลดล็อกครบทั้งหมดแล้ว</h4>
+            </div>
+            <button className="next-pill complete" type="button" disabled>
+              ครบแล้ว
+            </button>
+          </div>
+        ) : (
+          <div className="next-reward sheet-next-reward">
+            <div className="next-reward-thumb">
+              <img src={displayReward.progressImage ?? displayReward.image} alt="" />
+              {displayReward.progressImageOverlay && (
+                <img src={displayReward.progressImageOverlay} alt="" />
+              )}
+            </div>
+            <div className="next-reward-text">
+              <p>{canClaimDisplayedReward ? "ปลดล็อกแล้ว" : "รางวัลถัดไป"}</p>
+              <h4>{displayReward.title.replace("\n", " ")}</h4>
+            </div>
+            <button
+              className={canClaimDisplayedReward ? "next-pill active" : "next-pill"}
+              type="button"
+              onClick={() => {
+                if (canClaimDisplayedReward) {
+                  onClaimReward(displayReward.threshold);
+                }
+              }}
+            >
+              {canClaimDisplayedReward ? "รับรางวัล" : `อีก ${remainingStars} ดวง`}
+            </button>
+          </div>
+        )}
       </section>
     </div>
   );
@@ -797,6 +930,34 @@ function getRewardGroups() {
     step: groupRewards[0].step,
     rewards: groupRewards,
   }));
+}
+
+function getSnakeRowProgress(rowIndex: number, stars: number) {
+  const rowThresholds = rowIndex === 0 ? [0, 3, 5, 7] : rowIndex === 1 ? [10, 12, 15, 17] : [20];
+
+  if (stars < rowThresholds[0]) {
+    return 0;
+  }
+
+  if (rowThresholds.length === 1) {
+    return stars >= rowThresholds[0] ? 100 : 0;
+  }
+
+  if (stars >= rowThresholds[rowThresholds.length - 1]) {
+    return 100;
+  }
+
+  for (let index = 1; index < rowThresholds.length; index += 1) {
+    const previous = rowThresholds[index - 1];
+    const current = rowThresholds[index];
+
+    if (stars <= current) {
+      const segmentProgress = (stars - previous) / (current - previous);
+      return ((index - 1 + segmentProgress) / (rowThresholds.length - 1)) * 100;
+    }
+  }
+
+  return 100;
 }
 
 function getTrackPoints(stars: number): TrackPoint[] {
