@@ -879,7 +879,12 @@ function MissionListPage({
         </div>
       </section>
 
-      <div className="segmented-tabs" role="tablist" aria-label="ประเภทภารกิจ">
+      <div
+        className={`segmented-tabs ${showingJoinedOnly ? "is-joined-active" : "is-all-active"}`}
+        role="tablist"
+        aria-label="ประเภทภารกิจ"
+      >
+        <span className="segmented-tabs-indicator" aria-hidden="true" />
         <button
           aria-selected={activeTab === "all"}
           className={activeTab === "all" ? "active" : ""}
