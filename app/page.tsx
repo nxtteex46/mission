@@ -18,6 +18,8 @@ type TrackPoint = {
   kind: "empty" | "reward";
 };
 
+type MissionId = "eatventure" | "gourmet";
+
 const rewards: Reward[] = [
   {
     threshold: 3,
@@ -88,6 +90,30 @@ const rewards: Reward[] = [
   },
 ];
 
+const gourmetRewards: Reward[] = [
+  {
+    threshold: 1000,
+    step: "ยอดช้อปครบ 1,000 บาท",
+    image: "/m-card/gourmet-reward-cash-100.png",
+    title: "รับ CASH COUPON\nมูลค่า 100 บาท",
+    remaining: "จำนวนสิทธิ์ 520/900",
+  },
+  {
+    threshold: 2000,
+    step: "ยอดช้อปครบ 2,000 บาท",
+    image: "/m-card/gourmet-reward-cash-300.png",
+    title: "รับ CASH COUPON\nมูลค่า 300 บาท",
+    remaining: "จำนวนสิทธิ์ 430/700",
+  },
+  {
+    threshold: 3000,
+    step: "ยอดช้อปครบ 3,000 บาท",
+    image: "/m-card/gourmet-reward-bag-3000.png",
+    title: "รับกระเป๋า GOURMET EATS\nมูลค่า 3,000 บาท",
+    remaining: "จำนวนสิทธิ์ 290/400",
+  },
+];
+
 const campaignTerms = [
   "กดปุ่ม “เข้าร่วมภารกิจ” ในหน้ารายละเอียดภารกิจ ระบบจะเริ่มนับดวงให้อัตโนมัติ",
   "ยอดใช้จ่ายก่อนกดเข้าร่วมภารกิจ จะไม่ถูกนำมานับ",
@@ -100,14 +126,30 @@ const campaignTerms = [
   "ของรางวัลมีจำนวนจำกัด เมื่อสิทธิ์เต็มจะไม่สามารถกดรับได้",
 ];
 
+const gourmetCampaignTerms = [
+  "กดปุ่ม “เข้าร่วมภารกิจ” ในหน้ารายละเอียดภารกิจ ระบบจะเริ่มนับยอดช้อปให้อัตโนมัติ",
+  "ยอดช้อปก่อนกดเข้าร่วมภารกิจ จะไม่ถูกนำมานับ",
+  "นับยอดช้อปจากร้านอาหารในเครือ Gourmet Eats ที่ร่วมรายการเท่านั้น",
+  "ยอดช้อปสะสมจะแสดงตามระดับ 1,000 / 2,000 / 3,000 บาท",
+  "เมื่อยอดช้อปถึงแต่ละระดับ รางวัลจะปลดล็อกและสามารถกดรับรางวัลได้",
+  "ยอดช้อปอาจใช้เวลาปรับปรุงภายใน 3 วันทำการหลังทำรายการ",
+  "รางวัลมีทั้งหมด 3 รายการ และมีจำนวนจำกัดตามสิทธิ์คงเหลือ",
+  "ของรางวัลที่สิทธิ์เต็มแล้วจะไม่สามารถกดรับได้",
+];
+
 export default function Home() {
   const [screen, setScreen] = useState<"list" | "detail">("list");
+  const [selectedMission, setSelectedMission] = useState<MissionId>("eatventure");
   const [joined, setJoined] = useState(false);
+  const [gourmetJoined, setGourmetJoined] = useState(false);
   const [stars, setStars] = useState(0);
   const [claimedProgressThresholds, setClaimedProgressThresholds] = useState<number[]>([]);
   const [showCollectedRewards, setShowCollectedRewards] = useState(false);
+  const [showGourmetCollectedRewards, setShowGourmetCollectedRewards] = useState(false);
   const [showTermsSheet, setShowTermsSheet] = useState(false);
   const [starBadgeEffect, setStarBadgeEffect] = useState<{ id: number } | null>(null);
+  const [gourmetSpend, setGourmetSpend] = useState(0);
+  const [claimedGourmetThresholds, setClaimedGourmetThresholds] = useState<number[]>([]);
 
   useEffect(() => {
     if (!starBadgeEffect) {
@@ -120,10 +162,6 @@ export default function Home() {
   }, [starBadgeEffect]);
 
   const handleAddStar = () => {
-    if (stars >= 20) {
-      return;
-    }
-
     const totalStars = stars + 1;
     setStars(totalStars);
     setStarBadgeEffect({ id: Date.now() });
@@ -135,6 +173,36 @@ export default function Home() {
     setClaimedProgressThresholds([]);
     setStarBadgeEffect(null);
     setScreen("detail");
+  };
+
+  const openMissionDetail = (mission: MissionId) => {
+    setSelectedMission(mission);
+    setShowCollectedRewards(false);
+    setShowGourmetCollectedRewards(false);
+    setShowTermsSheet(false);
+    setScreen("detail");
+  };
+
+  const handleJoinGourmetMission = () => {
+    setGourmetJoined(true);
+    setClaimedGourmetThresholds([]);
+    setSelectedMission("gourmet");
+    setScreen("detail");
+  };
+
+  const handleResetGourmetMission = () => {
+    setGourmetJoined(false);
+    setGourmetSpend(0);
+    setClaimedGourmetThresholds([]);
+    setShowGourmetCollectedRewards(false);
+    setShowTermsSheet(false);
+    setScreen("list");
+  };
+
+  const handleClaimGourmetReward = (threshold: number) => {
+    setClaimedGourmetThresholds((thresholds) =>
+      thresholds.includes(threshold) ? thresholds : [...thresholds, threshold],
+    );
   };
 
   return (
@@ -149,6 +217,7 @@ export default function Home() {
                 if (screen === "detail") {
                   setScreen("list");
                   setShowCollectedRewards(false);
+                  setShowGourmetCollectedRewards(false);
                   setShowTermsSheet(false);
                 }
               }}
@@ -174,7 +243,7 @@ export default function Home() {
           </header>
         </div>
 
-        {screen === "detail" ? (
+        {screen === "detail" && selectedMission === "eatventure" ? (
           <>
             <img
               src="/m-card/offer.png"
@@ -275,28 +344,49 @@ export default function Home() {
             )}
           </>
         ) : (
-          <MissionListPage
-            joined={joined}
-            onOpenDetail={() => setScreen("detail")}
-            stars={stars}
-          />
+          screen === "detail" ? (
+            <GourmetMissionDetail
+              joined={gourmetJoined}
+              claimedThresholds={claimedGourmetThresholds}
+              currentSpend={gourmetSpend}
+              onAddSpend={() => setGourmetSpend((value) => value + 400)}
+              onClaimReward={handleClaimGourmetReward}
+              onJoin={handleJoinGourmetMission}
+              onRemoveSpend={() => setGourmetSpend((value) => Math.max(value - 400, 0))}
+              onResetSpend={handleResetGourmetMission}
+              onShowCollected={() => setShowGourmetCollectedRewards(true)}
+              onShowTerms={() => setShowTermsSheet(true)}
+            />
+          ) : (
+            <MissionListPage
+              joined={joined}
+              gourmetJoined={gourmetJoined}
+              gourmetSpend={gourmetSpend}
+              onOpenDetail={() => openMissionDetail("eatventure")}
+              onOpenMissionDetail={openMissionDetail}
+              stars={stars}
+            />
+          )
         )}
 
         {showCollectedRewards && (
           <CollectedRewardsSheet
             claimedThresholds={claimedProgressThresholds}
             stars={stars}
-            onClaimReward={(threshold) =>
-              setClaimedProgressThresholds((thresholds) =>
-                thresholds.includes(threshold) ? thresholds : [...thresholds, threshold],
-              )
-            }
             onClose={() => setShowCollectedRewards(false)}
           />
         )}
 
+        {showGourmetCollectedRewards && (
+          <GourmetProgressSheet
+            claimedThresholds={claimedGourmetThresholds}
+            currentSpend={gourmetSpend}
+            onClose={() => setShowGourmetCollectedRewards(false)}
+          />
+        )}
+
         {showTermsSheet && (
-          <TermsSheet onClose={() => setShowTermsSheet(false)} />
+          <TermsSheet mission={selectedMission} onClose={() => setShowTermsSheet(false)} />
         )}
 
       </section>
@@ -313,11 +403,12 @@ const missionCards = [
     limit: "จำกัดสิทธิ์ 70 สิทธิ์",
   },
   {
+    id: "gourmet",
     image: "/m-card/mission-gourmet.png",
-    title: "GOURMET EATS ช้อปครบ 3 ระดับ\nรับรางวัลสุมคุ้ม",
-    date: "1 ส.ค. 69 – 30 ก.ย. 69",
-    remaining: "ของรางวัลคงเหลือรวม 65 สิทธิ์",
-    limit: "จำกัดสิทธิ์ 80 สิทธิ์",
+    title: "GOURMET EATS ช้อปครบ 3 ระดับ\nรับรางวัลสุดคุ้ม",
+    date: "1 ส.ค. 69 – 31 ต.ค. 69",
+    remaining: "ของรางวัลคงเหลือรวม 1,240 สิทธิ์",
+    limit: "จำกัดสิทธิ์ 2,000 สิทธิ์",
   },
   {
     image: "/m-card/mission-food-waste.png",
@@ -328,17 +419,441 @@ const missionCards = [
   },
 ];
 
-function MissionListPage({
+function GourmetMissionDetail({
+  claimedThresholds,
+  currentSpend,
   joined,
+  onAddSpend,
+  onClaimReward,
+  onJoin,
+  onRemoveSpend,
+  onResetSpend,
+  onShowCollected,
+  onShowTerms,
+}: {
+  claimedThresholds: number[];
+  currentSpend: number;
+  joined: boolean;
+  onAddSpend: () => void;
+  onClaimReward: (threshold: number) => void;
+  onJoin: () => void;
+  onRemoveSpend: () => void;
+  onResetSpend: () => void;
+  onShowCollected: () => void;
+  onShowTerms: () => void;
+}) {
+  return (
+    <>
+      <img
+        src="/m-card/gourmet-eats-hero.png"
+        alt="Gourmet Eats mission"
+        className="offer-image"
+      />
+
+      <div className={joined ? "content joined-content" : "content"}>
+        <section className="intro">
+          <p className="mission-type">SHOP MISSION</p>
+          <div className="offer-info">
+            <h2>GOURMET EATS ช้อปครบ 3 ระดับ</h2>
+            <p className="date">1 ส.ค. 69 – 31 ต.ค. 69</p>
+          </div>
+
+          {joined ? (
+            <GourmetProgressCard
+              claimedThresholds={claimedThresholds}
+              currentSpend={currentSpend}
+              onAddSpend={onAddSpend}
+              onClaimReward={onClaimReward}
+              onRemoveSpend={onRemoveSpend}
+              onResetSpend={onResetSpend}
+              onShowCollected={onShowCollected}
+            />
+          ) : (
+            <JoinPrompt>
+              ช้อปที่ร้านอาหารในเครือ Gourmet Eats ครบตามยอด 1,000 / 2,000 / 3,000 บาท เพื่อรับรางวัลสูงสุด 3 รายการ
+            </JoinPrompt>
+          )}
+
+          <p className="description">
+            ช้อปที่ร้านอาหารในเครือ Gourmet Eats ครบตามยอดแต่ละระดับ เพื่อปลดล็อกรางวัลสุดคุ้มทั้งหมด 3 รางวัล
+          </p>
+          <button className="terms-button" type="button" onClick={onShowTerms}>
+            รายละเอียดและเงื่อนไข
+          </button>
+        </section>
+
+        <section className="rewards" aria-labelledby="gourmet-rewards-heading">
+          <h2 id="gourmet-rewards-heading">ของรางวัลทั้งหมด</h2>
+          <div className="reward-list">
+            {gourmetRewards.map((reward) => {
+              const isClaimed = claimedThresholds.includes(reward.threshold);
+              const isUnlocked = currentSpend >= reward.threshold;
+
+              return (
+                <article className="reward-section" key={reward.step}>
+                  <p className="reward-step">{reward.step}</p>
+                  <div className="reward-card">
+                    <img src={reward.image} alt="" className="reward-image" />
+                    <div className="reward-detail">
+                      <p className="reward-title">{reward.title}</p>
+                      <div className="reward-meta">
+                        <span>{reward.remaining}</span>
+                      <button
+                        className={
+                          !joined
+                            ? "reward-pill locked"
+                            : isClaimed
+                              ? "reward-pill claimed"
+                              : isUnlocked
+                              ? "reward-pill active"
+                              : "reward-pill pending"
+                        }
+                        disabled={isClaimed}
+                        onClick={() => {
+                          if (joined && isUnlocked && !isClaimed) {
+                            onClaimReward(reward.threshold);
+                          }
+                        }}
+                        type="button"
+                      >
+                        {!joined
+                          ? "ยังไม่ปลดล็อก"
+                          : isClaimed
+                            ? "รับแล้ว"
+                            : isUnlocked
+                            ? "รับรางวัล"
+                            : `อีก ${formatBaht(reward.threshold - currentSpend)} บาท`}
+                      </button>
+                      </div>
+                    </div>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        </section>
+      </div>
+
+      {!joined && (
+        <div className="cta-bar">
+          <button className="join-button" type="button" onClick={onJoin}>
+            เข้าร่วมภารกิจ
+          </button>
+          <p>เข้าร่วมแล้ว ระบบจะแสดงความคืบหน้าตามระดับการช้อป</p>
+        </div>
+      )}
+    </>
+  );
+}
+
+function formatBaht(value: number) {
+  return value.toLocaleString("th-TH");
+}
+
+function getGourmetTrackPoints() {
+  return [
+    { threshold: 0, label: "", kind: "empty" as const },
+    { threshold: 1000, label: "1,000 บาท", kind: "reward" as const },
+    { threshold: 2000, label: "2,000 บาท", kind: "reward" as const },
+    { threshold: 3000, label: "3,000 บาท", kind: "reward" as const },
+  ];
+}
+
+function getNextGourmetReward(currentSpend: number) {
+  return gourmetRewards.find((reward) => currentSpend < reward.threshold);
+}
+
+function getClaimableGourmetReward(currentSpend: number, claimedThresholds: number[]) {
+  return gourmetRewards.find(
+    (reward) => currentSpend >= reward.threshold && !claimedThresholds.includes(reward.threshold),
+  );
+}
+
+function GourmetProgressCard({
+  claimedThresholds,
+  currentSpend,
+  onAddSpend,
+  onClaimReward,
+  onRemoveSpend,
+  onResetSpend,
+  onShowCollected,
+}: {
+  claimedThresholds: number[];
+  currentSpend: number;
+  onAddSpend: () => void;
+  onClaimReward: (threshold: number) => void;
+  onRemoveSpend: () => void;
+  onResetSpend: () => void;
+  onShowCollected: () => void;
+}) {
+  const maxSpend = 3000;
+  const progressPoints = getGourmetTrackPoints();
+  const claimableReward = getClaimableGourmetReward(currentSpend, claimedThresholds);
+  const nextReward = getNextGourmetReward(currentSpend);
+  const displayReward = claimableReward ?? nextReward;
+  const progressRatio = Math.min(currentSpend / maxSpend, 1);
+  const remainingSpend = Math.max((displayReward?.threshold ?? maxSpend) - currentSpend, 0);
+  const hasClaimedAllRewards = gourmetRewards.every((reward) => claimedThresholds.includes(reward.threshold));
+
+  return (
+    <div className="progress-group">
+      <div className="progress-card" aria-label="ความคืบหน้าภารกิจ Gourmet Eats">
+        <div className="progress-header">
+          <h3>ยอดช้อปสะสม {formatBaht(currentSpend)}/{formatBaht(maxSpend)} บาท</h3>
+          <button type="button" onClick={onShowCollected}>ดูทั้งหมด</button>
+        </div>
+
+        <div className="progress-track" aria-hidden="true">
+          <div className="track-rail">
+            <span />
+          </div>
+          {currentSpend > 0 && (
+            <>
+              <div
+                className="track-done"
+                style={{ width: `calc((100% - 28px) * ${progressRatio})` }}
+              />
+              <div
+                className="current-flag spend-current-flag"
+                style={{ left: `calc(14px + (100% - 28px) * ${progressRatio})` }}
+              >
+                <span>{formatBaht(currentSpend)}</span>
+                <i />
+              </div>
+            </>
+          )}
+          <div className="track-points">
+            {progressPoints.map((point) => {
+              const isUnlocked = point.kind === "reward" && currentSpend >= point.threshold;
+
+              return (
+                <div
+                  className={`track-point ${point.kind === "empty" ? "is-empty" : ""} ${
+                    isUnlocked ? "is-claimed" : ""
+                  }`}
+                  key={point.threshold}
+                >
+                  <span>
+                    {point.kind === "reward" && (
+                      <img src={isUnlocked ? "/m-card/claimed-gift.svg" : "/m-card/locked-gift.svg"} alt="" />
+                    )}
+                  </span>
+                  <p>{point.label}</p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="progress-divider" />
+
+        {displayReward && !hasClaimedAllRewards ? (
+          <div className="next-reward">
+            <div className="next-reward-thumb">
+              <img src={displayReward.image} alt="" />
+            </div>
+            <div className="next-reward-text">
+              <p>{claimableReward ? "ปลดล็อกแล้ว" : "รางวัลถัดไป"}</p>
+              <h4>{displayReward.title.replace("\n", " ")}</h4>
+            </div>
+            <button
+              className={claimableReward ? "next-pill active" : "next-pill"}
+              onClick={() => {
+                if (claimableReward) {
+                  onClaimReward(displayReward.threshold);
+                }
+              }}
+              type="button"
+            >
+              {claimableReward ? "รับรางวัล" : `อีก ${formatBaht(remainingSpend)} บาท`}
+            </button>
+          </div>
+        ) : (
+          <div className="next-reward is-complete">
+            <div className="next-reward-thumb">
+              <img src="/m-card/reward-complete.png" alt="" />
+            </div>
+            <div className="next-reward-text">
+              <p>ครบทุกระดับแล้ว</p>
+              <h4>คุณปลดล็อกรางวัลครบทั้ง 3 รางวัลแล้ว</h4>
+            </div>
+            <button className="next-pill complete" type="button" disabled>
+              ครบแล้ว
+            </button>
+          </div>
+        )}
+      </div>
+
+      <div className="tester-controls" aria-label="ตัวช่วยทดสอบยอดช้อป">
+        <button type="button" onClick={onRemoveSpend} disabled={currentSpend === 0}>
+          - ยอด
+        </button>
+        <button type="button" onClick={onAddSpend}>
+          + ยอด
+        </button>
+        <button type="button" onClick={onResetSpend}>
+          รีเซ็ต
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function GourmetProgressSheet({
+  claimedThresholds,
+  currentSpend,
+  onClose,
+}: {
+  claimedThresholds: number[];
+  currentSpend: number;
+  onClose: () => void;
+}) {
+  const maxSpend = 3000;
+  const unlockedCount = gourmetRewards.filter((reward) => currentSpend >= reward.threshold).length;
+  const claimedCount = gourmetRewards.filter((reward) => claimedThresholds.includes(reward.threshold)).length;
+  const nextReward = getNextGourmetReward(currentSpend);
+  const progressPoints = getGourmetTrackPoints();
+  const progressRatio = Math.min(currentSpend / maxSpend, 1);
+
+  return (
+    <div className="sheet-backdrop" role="presentation" onClick={onClose}>
+      <section
+        className="collected-sheet"
+        aria-label="Progress ยอดช้อป"
+        role="dialog"
+        aria-modal="true"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div className="sheet-handle" aria-hidden="true" />
+        <header className="sheet-header">
+          <div>
+            <h2>ยอดช้อปสะสม {formatBaht(currentSpend)}/{formatBaht(maxSpend)} บาท</h2>
+            <p>
+              ปลดล็อกแล้ว {unlockedCount}/3 ขั้น · รับแล้ว {claimedCount}/3 รางวัล
+              {nextReward ? ` · อีก ${formatBaht(nextReward.threshold - currentSpend)} บาทถึงรางวัลถัดไป` : " · ครบทุกขั้นแล้ว"}
+            </p>
+          </div>
+          <button className="sheet-close-icon" type="button" onClick={onClose} aria-label="ปิดรายการรางวัล">
+            <img src="/m-card/terms-close.svg" alt="" />
+          </button>
+        </header>
+
+        <div className="gourmet-sheet-progress">
+          <div className="progress-track" aria-hidden="true">
+            <div className="track-rail">
+              <span />
+            </div>
+            {currentSpend > 0 && (
+              <>
+                <div
+                  className="track-done"
+                  style={{ width: `calc((100% - 28px) * ${progressRatio})` }}
+                />
+                <div
+                  className="current-flag spend-current-flag"
+                  style={{ left: `calc(14px + (100% - 28px) * ${progressRatio})` }}
+                >
+                  <span>{formatBaht(currentSpend)}</span>
+                  <i />
+                </div>
+              </>
+            )}
+            <div className="track-points">
+              {progressPoints.map((point) => {
+                const isUnlocked = point.kind === "reward" && currentSpend >= point.threshold;
+
+                return (
+                  <div
+                    className={`track-point ${point.kind === "empty" ? "is-empty" : ""} ${
+                      isUnlocked ? "is-claimed" : ""
+                    }`}
+                    key={point.threshold}
+                  >
+                    <span>
+                      {point.kind === "reward" && (
+                        <img src={isUnlocked ? "/m-card/claimed-gift.svg" : "/m-card/locked-gift.svg"} alt="" />
+                      )}
+                    </span>
+                    <p>{point.label}</p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function GourmetMiniProgress({ currentSpend }: { currentSpend: number }) {
+  const maxSpend = 3000;
+  const progressRatio = Math.min(currentSpend / maxSpend, 1);
+  const progressPoints = getGourmetTrackPoints().map((point) =>
+    point.kind === "reward" ? { ...point, label: point.label.replace(" บาท", "") } : point,
+  );
+
+  return (
+    <div className="mission-mini-progress">
+      <div className="mini-progress-header">
+        <span>ความคืบหน้า</span>
+        <strong>{formatBaht(currentSpend)}/{formatBaht(maxSpend)}</strong>
+      </div>
+      <div className="mini-track-rail">
+        <span />
+      </div>
+      {currentSpend > 0 && (
+        <div
+          className="mini-track-done"
+          style={{ width: `calc((100% - 28px) * ${progressRatio})` }}
+        />
+      )}
+      <div className="mini-track-points">
+        {progressPoints.map((point) => {
+          const isUnlocked = point.kind === "reward" && currentSpend >= point.threshold;
+
+          return (
+            <div
+              className={`mini-point ${point.kind === "empty" ? "is-empty" : ""} ${
+                isUnlocked ? "is-claimed" : ""
+              }`}
+              key={point.threshold}
+            >
+              <span>
+                {point.kind === "reward" && (
+                  <img src={isUnlocked ? "/m-card/claimed-gift.svg" : "/m-card/locked-gift.svg"} alt="" />
+                )}
+              </span>
+              <p>{point.label}</p>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function MissionListPage({
+  gourmetJoined,
+  gourmetSpend,
+  joined,
+  onOpenMissionDetail,
   onOpenDetail,
   stars,
 }: {
+  gourmetJoined: boolean;
+  gourmetSpend: number;
   joined: boolean;
+  onOpenMissionDetail: (mission: MissionId) => void;
   onOpenDetail: () => void;
   stars: number;
 }) {
   const [activeTab, setActiveTab] = useState<"all" | "joined">("all");
   const showingJoinedOnly = activeTab === "joined";
+  const joinedMissionCount = Number(joined) + Number(gourmetJoined);
+  const visibleMissionCards = showingJoinedOnly
+    ? missionCards.filter((mission) => mission.id === "gourmet" && gourmetJoined)
+    : missionCards;
 
   return (
     <div className="mission-list-page">
@@ -368,13 +883,25 @@ function MissionListPage({
           type="button"
           onClick={() => setActiveTab("joined")}
         >
-          เข้าร่วมแล้ว ({joined ? 1 : 0})
+          เข้าร่วมแล้ว ({joinedMissionCount})
         </button>
       </div>
 
       <section className="mission-list" aria-label="รายการภารกิจ">
-        {!showingJoinedOnly && missionCards.map((mission) => (
-          <article className="mission-card" key={mission.title}>
+        {visibleMissionCards.map((mission) => {
+          const isGourmet = mission.id === "gourmet";
+          const isMissionJoined = isGourmet && gourmetJoined;
+
+          return (
+          <article
+            className="mission-card"
+            key={mission.title}
+            onClick={() => {
+              if (isGourmet) {
+                onOpenMissionDetail("gourmet");
+              }
+            }}
+          >
             <div className="mission-card-header">
               <img src={mission.image} alt="" />
               <div>
@@ -382,15 +909,29 @@ function MissionListPage({
                 <p>{mission.date}</p>
               </div>
             </div>
+            {isMissionJoined && <GourmetMiniProgress currentSpend={gourmetSpend} />}
             <div className="mission-meta-strip">
               <div>
                 <strong>{mission.remaining}</strong>
-                <span>{mission.limit}</span>
+                <span>{isMissionJoined ? "เข้าร่วมแล้ว" : mission.limit}</span>
               </div>
-              <button type="button">เข้าร่วม</button>
+              {!isMissionJoined && (
+                <button
+                  type="button"
+                  onClick={(event) => {
+                    if (isGourmet) {
+                      event.stopPropagation();
+                      onOpenMissionDetail("gourmet");
+                    }
+                  }}
+                >
+                  เข้าร่วม
+                </button>
+              )}
             </div>
           </article>
-        ))}
+          );
+        })}
 
         {(!showingJoinedOnly || joined) && (
           <EatventureMissionCard
@@ -400,7 +941,7 @@ function MissionListPage({
           />
         )}
 
-        {showingJoinedOnly && !joined && (
+        {showingJoinedOnly && joinedMissionCount === 0 && (
           <div className="mission-empty-state">
             <p>ยังไม่มีภารกิจที่เข้าร่วม</p>
           </div>
@@ -501,7 +1042,10 @@ function EatventureMissionCard({
   );
 }
 
-function TermsSheet({ onClose }: { onClose: () => void }) {
+function TermsSheet({ mission, onClose }: { mission: MissionId; onClose: () => void }) {
+  const isGourmet = mission === "gourmet";
+  const terms = isGourmet ? gourmetCampaignTerms : campaignTerms;
+
   return (
     <div className="sheet-backdrop" role="presentation" onClick={onClose}>
       <section
@@ -517,10 +1061,12 @@ function TermsSheet({ onClose }: { onClose: () => void }) {
         </button>
         <h2>รายละเอียดแคมเปญ</h2>
         <p className="terms-summary">
-          ช้อปร้านอาหารในศูนย์ฯ ครบทุก 400 บาท รับ 1 ดวง สะสมครบตามขั้นเพื่อรับรางวัล
+          {isGourmet
+            ? "ช้อปร้านอาหารในเครือ Gourmet Eats สะสมยอดตามระดับ 1,000 / 2,000 / 3,000 บาท เพื่อรับรางวัล"
+            : "ช้อปร้านอาหารในศูนย์ฯ ครบทุก 400 บาท รับ 1 ดวง สะสมครบตามขั้นเพื่อรับรางวัล"}
         </p>
         <ul className="terms-list">
-          {campaignTerms.map((term) => (
+          {terms.map((term) => (
             <li key={term}>{term}</li>
           ))}
         </ul>
@@ -581,12 +1127,12 @@ function RewardAction({
   );
 }
 
-function JoinPrompt() {
+function JoinPrompt({ children }: { children?: React.ReactNode }) {
   return (
     <div className="join-card">
       <h3>เข้าร่วมเพื่อเริ่มภารกิจ</h3>
       <p>
-        ใช้จ่ายร้านอาหารในศูนย์ฯ ครบทุก 400 บาท รับ 1 ดวง แลกรางวัลได้สูงสุด 9 รายการ
+        {children ?? "ใช้จ่ายร้านอาหารในศูนย์ฯ ครบทุก 400 บาท รับ 1 ดวง แลกรางวัลได้สูงสุด 9 รายการ"}
       </p>
     </div>
   );
@@ -757,7 +1303,7 @@ function ProgressCard({
         <button type="button" onClick={onRemoveStar} disabled={stars === 0}>
           - ดาว
         </button>
-        <button type="button" onClick={onAddStar} disabled={stars === 20}>
+        <button type="button" onClick={onAddStar}>
           + ดาว
         </button>
         <button type="button" onClick={onReset}>
@@ -771,40 +1317,16 @@ function ProgressCard({
 function CollectedRewardsSheet({
   claimedThresholds,
   stars,
-  onClaimReward,
   onClose,
 }: {
   claimedThresholds: number[];
   stars: number;
-  onClaimReward: (threshold: number) => void;
   onClose: () => void;
 }) {
   const rewardGroups = getRewardGroups();
   const milestones = rewardGroups.map((group) => group.threshold);
   const unlockedCount = milestones.filter((milestone) => stars >= milestone).length;
   const nextMilestone = milestones.find((milestone) => milestone > stars);
-  const claimableThresholds = Array.from(
-    new Set(
-      rewards
-        .filter((reward) => reward.remaining !== "ผู้ใช้สิทธิ์ครบแล้ว")
-        .map((reward) => reward.threshold),
-    ),
-  );
-  const hasClaimedAllAvailableRewards = claimableThresholds.every((threshold) =>
-    claimedThresholds.includes(threshold),
-  );
-  const claimableReward = rewards.find(
-    (reward) =>
-      stars >= reward.threshold &&
-      reward.remaining !== "ผู้ใช้สิทธิ์ครบแล้ว" &&
-      !claimedThresholds.includes(reward.threshold),
-  );
-  const displayReward =
-    claimableReward ??
-    rewards.find((reward) => reward.threshold > stars && reward.remaining !== "ผู้ใช้สิทธิ์ครบแล้ว") ??
-    rewards[rewards.length - 1];
-  const remainingStars = Math.max(displayReward.threshold - stars, 0);
-  const canClaimDisplayedReward = Boolean(claimableReward);
   const snakeRows = [
     [{ threshold: 0, kind: "start" as const }, ...rewardGroups.slice(0, 3)],
     rewardGroups.slice(3, 7).reverse(),
@@ -845,7 +1367,7 @@ function CollectedRewardsSheet({
               {row.length > 1 && (
                 <span
                   className="snake-line-fill"
-                  style={{ width: `calc((75% - 42px) * ${getSnakeRowProgress(rowIndex, stars) / 100})` }}
+                  style={{ width: `calc(75% * ${getSnakeRowProgress(rowIndex, stars) / 100})` }}
                 />
               )}
               {row.map((group) => {
@@ -872,47 +1394,6 @@ function CollectedRewardsSheet({
             </div>
           ))}
         </div>
-
-        <div className="progress-divider" />
-
-        {hasClaimedAllAvailableRewards ? (
-          <div className="next-reward sheet-next-reward is-complete">
-            <div className="next-reward-thumb">
-              <img src="/m-card/reward-complete.png" alt="" />
-            </div>
-            <div className="next-reward-text">
-              <p>รับครบแล้ว</p>
-              <h4>คุณรับรางวัลที่ปลดล็อกครบทั้งหมดแล้ว</h4>
-            </div>
-            <button className="next-pill complete" type="button" disabled>
-              ครบแล้ว
-            </button>
-          </div>
-        ) : (
-          <div className="next-reward sheet-next-reward">
-            <div className="next-reward-thumb">
-              <img src={displayReward.progressImage ?? displayReward.image} alt="" />
-              {displayReward.progressImageOverlay && (
-                <img src={displayReward.progressImageOverlay} alt="" />
-              )}
-            </div>
-            <div className="next-reward-text">
-              <p>{canClaimDisplayedReward ? "ปลดล็อกแล้ว" : "รางวัลถัดไป"}</p>
-              <h4>{displayReward.title.replace("\n", " ")}</h4>
-            </div>
-            <button
-              className={canClaimDisplayedReward ? "next-pill active" : "next-pill"}
-              type="button"
-              onClick={() => {
-                if (canClaimDisplayedReward) {
-                  onClaimReward(displayReward.threshold);
-                }
-              }}
-            >
-              {canClaimDisplayedReward ? "รับรางวัล" : `อีก ${remainingStars} ดวง`}
-            </button>
-          </div>
-        )}
       </section>
     </div>
   );

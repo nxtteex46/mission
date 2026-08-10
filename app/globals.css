@@ -284,8 +284,8 @@ button {
 
 .mission-meta-strip strong,
 .mission-meta-strip span {
-  font-size: 12px;
-  line-height: 18px;
+  font-size: 14px;
+  line-height: 20px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -354,16 +354,14 @@ button {
 }
 
 .mission-mini-progress.has-more-tiers .mini-track-rail {
-  right: 42px;
+  right: 8px;
 }
 
 .mini-track-rail span {
-  background-image: radial-gradient(circle, #d6d6d6 2px, transparent 2.5px);
-  background-position: left center;
-  background-repeat: repeat-x;
-  background-size: 10px 5px;
+  background: #e5e5e5;
+  border-radius: 9999px;
   display: block;
-  height: 5px;
+  height: 6px;
   width: 100%;
 }
 
@@ -458,19 +456,20 @@ button {
 
 .mini-more-tiers {
   align-items: center;
-  display: flex;
+  background: #e5e5e5;
+  border-radius: 9999px;
+  display: none;
   gap: 6px;
+  height: 6px;
   position: absolute;
   right: 8px;
-  top: 38px;
+  top: 37.5px;
+  width: 28px;
+  z-index: 1;
 }
 
 .mini-more-tiers span {
-  background: #d6d6d6;
-  border-radius: 9999px;
-  display: block;
-  height: 4px;
-  width: 4px;
+  display: none;
 }
 
 .content {
@@ -520,6 +519,11 @@ button {
   font-weight: 400;
   line-height: 22px;
   margin: 0;
+}
+
+.description {
+  text-align: left;
+  width: 100%;
 }
 
 .join-card {
@@ -588,16 +592,37 @@ button {
 }
 
 .progress-header button {
-  background: transparent;
-  border: 0;
-  color: var(--faint);
+  align-items: center;
+  background: #f5f5f5;
+  border: 1px solid #eeeeee;
+  border-radius: 9999px;
+  color: #252525;
   cursor: pointer;
+  display: inline-flex;
+  flex-shrink: 0;
   font-size: 11px;
-  font-weight: 500;
+  font-weight: 600;
+  gap: 4px;
+  height: 28px;
   line-height: 16px;
   margin: 0;
-  padding: 4px 0 4px 12px;
-  text-align: right;
+  padding: 0 10px 0 12px;
+  transition: background 160ms ease, border-color 160ms ease;
+}
+
+.progress-header button::after {
+  border-right: 1.5px solid currentColor;
+  border-top: 1.5px solid currentColor;
+  content: "";
+  display: block;
+  height: 5px;
+  transform: rotate(45deg);
+  width: 5px;
+}
+
+.progress-header button:active {
+  background: #eeeeee;
+  border-color: #dddddd;
 }
 
 .progress-track {
@@ -615,16 +640,14 @@ button {
 }
 
 .progress-track.has-more-tiers .track-rail {
-  right: 42px;
+  right: 8px;
 }
 
 .track-rail span {
-  background-image: radial-gradient(circle, #d6d6d6 2px, transparent 2.5px);
-  background-position: left center;
-  background-repeat: repeat-x;
-  background-size: 10px 5px;
+  background: #e5e5e5;
+  border-radius: 9999px;
   display: block;
-  height: 5px;
+  height: 6px;
   width: 100%;
 }
 
@@ -721,6 +744,22 @@ button {
   z-index: 2;
 }
 
+.spend-current-flag {
+  width: 62px;
+  z-index: 3;
+}
+
+.spend-current-flag span {
+  font-size: 10px;
+  min-width: 28px;
+  padding: 0 7px;
+}
+
+.spend-current-flag i {
+  left: 50%;
+  transform: translateX(-50%);
+}
+
 .track-points {
   align-items: flex-start;
   display: flex;
@@ -764,22 +803,20 @@ button {
 
 .more-tiers-inline {
   align-items: center;
-  display: flex;
+  background: #e5e5e5;
+  border-radius: 9999px;
+  display: none;
   gap: 6px;
-  height: 5px;
+  height: 6px;
   position: absolute;
   right: 8px;
-  top: 27px;
-  z-index: 5;
+  top: 26.5px;
+  width: 28px;
+  z-index: 1;
 }
 
 .more-tiers-inline span {
-  background: #d6d6d6;
-  border-radius: 9999px;
-  display: block;
-  flex-shrink: 0;
-  height: 4px;
-  width: 4px;
+  display: none;
 }
 
 .track-point.is-claimed span {
@@ -1010,7 +1047,7 @@ button {
   display: flex;
   gap: 12px;
   justify-content: space-between;
-  padding-bottom: 10px;
+  padding: 8px 42px 10px 0;
   position: relative;
 }
 
@@ -1028,7 +1065,6 @@ button {
   font-weight: 500;
   line-height: 18px;
   margin: 2px 0 0;
-  padding-right: 36px;
 }
 
 .sheet-header button {
@@ -1056,7 +1092,7 @@ button {
   padding: 0;
   position: absolute;
   right: 0;
-  top: 0;
+  top: -2px;
   width: 32px;
 }
 
@@ -1158,6 +1194,10 @@ button {
   padding: 14px;
 }
 
+.gourmet-sheet-progress {
+  padding: 8px 0 2px;
+}
+
 .reward-overview {
   display: grid;
   gap: 8px;
@@ -1203,16 +1243,14 @@ button {
 }
 
 .snake-row::before {
-  background-image: radial-gradient(circle, #d6d6d6 2px, transparent 2.5px);
-  background-position: left center;
-  background-repeat: repeat-x;
-  background-size: 10px 5px;
+  background: #e5e5e5;
+  border-radius: 9999px;
   content: "";
-  height: 5px;
-  left: calc(12.5% + 21px);
+  height: 6px;
+  left: 12.5%;
   position: absolute;
-  right: calc(12.5% + 21px);
-  top: 20px;
+  right: 12.5%;
+  top: 19.5px;
   z-index: 0;
 }
 
@@ -1220,14 +1258,14 @@ button {
   background: var(--m-card-red);
   border-radius: 3px;
   height: 6px;
-  left: calc(12.5% + 21px);
+  left: 12.5%;
   position: absolute;
   top: 19.5px;
   z-index: 0;
 }
 
 .snake-row-1::after {
-  border: 5px dotted #d6d6d6;
+  border: 6px solid #e5e5e5;
   border-left: 0;
   border-radius: 0 36px 36px 0;
   content: "";
@@ -1240,7 +1278,7 @@ button {
 }
 
 .snake-row-2::after {
-  border: 5px dotted #d6d6d6;
+  border: 6px solid #e5e5e5;
   border-right: 0;
   border-radius: 36px 0 0 36px;
   content: "";
@@ -1255,12 +1293,11 @@ button {
 .snake-row-1.is-bridge-active::after,
 .snake-row-2.is-bridge-active::after {
   border-color: var(--m-card-red);
-  border-style: solid;
 }
 
 .snake-row-2 .snake-line-fill {
   left: auto;
-  right: calc(12.5% + 21px);
+  right: 12.5%;
 }
 
 .snake-row-3 {
