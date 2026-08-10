@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import type { SyntheticEvent } from "react";
 
 type Reward = {
   threshold: number;
@@ -303,7 +304,12 @@ export default function Home() {
                         <p className="reward-step">{reward.step}</p>
                       )}
                       <div className="reward-card">
-                        <img src={reward.image} alt="" className="reward-image" />
+                        <img
+                          src={reward.image}
+                          alt=""
+                          className="reward-image"
+                          onError={handleRewardImageError}
+                        />
                         <div className="reward-detail">
                           <p className="reward-title">{reward.title}</p>
                           <div className="reward-meta">
@@ -493,7 +499,12 @@ function GourmetMissionDetail({
                 <article className="reward-section" key={reward.step}>
                   <p className="reward-step">{reward.step}</p>
                   <div className="reward-card">
-                    <img src={reward.image} alt="" className="reward-image" />
+                    <img
+                      src={reward.image}
+                      alt=""
+                      className="reward-image"
+                      onError={handleRewardImageError}
+                    />
                     <div className="reward-detail">
                       <p className="reward-title">{reward.title}</p>
                       <div className="reward-meta">
@@ -548,6 +559,17 @@ function GourmetMissionDetail({
 
 function formatBaht(value: number) {
   return value.toLocaleString("th-TH");
+}
+
+function handleRewardImageError(event: SyntheticEvent<HTMLImageElement>) {
+  const image = event.currentTarget;
+
+  if (image.dataset.fallbackApplied === "true") {
+    return;
+  }
+
+  image.dataset.fallbackApplied = "true";
+  image.src = "/m-card/reward-complete.png";
 }
 
 function getGourmetTrackPoints() {
@@ -650,7 +672,7 @@ function GourmetProgressCard({
         {displayReward && !hasClaimedAllRewards ? (
           <div className="next-reward">
             <div className="next-reward-thumb">
-              <img src={displayReward.image} alt="" />
+              <img src={displayReward.image} alt="" onError={handleRewardImageError} />
             </div>
             <div className="next-reward-text">
               <p>{claimableReward ? "ปลดล็อกแล้ว" : "รางวัลถัดไป"}</p>
@@ -671,7 +693,7 @@ function GourmetProgressCard({
         ) : (
           <div className="next-reward is-complete">
             <div className="next-reward-thumb">
-              <img src="/m-card/reward-complete.png" alt="" />
+              <img src="/m-card/reward-complete.png" alt="" onError={handleRewardImageError} />
             </div>
             <div className="next-reward-text">
               <p>ครบทุกระดับแล้ว</p>
@@ -744,19 +766,10 @@ function GourmetProgressSheet({
               <span />
             </div>
             {currentSpend > 0 && (
-              <>
-                <div
-                  className="track-done"
-                  style={{ width: `calc((100% - 28px) * ${progressRatio})` }}
-                />
-                <div
-                  className="current-flag spend-current-flag"
-                  style={{ left: `calc(14px + (100% - 28px) * ${progressRatio})` }}
-                >
-                  <span>{formatBaht(currentSpend)}</span>
-                  <i />
-                </div>
-              </>
+              <div
+                className="track-done"
+                style={{ width: `calc((100% - 28px) * ${progressRatio})` }}
+              />
             )}
             <div className="track-points">
               {progressPoints.map((point) => {
@@ -1262,7 +1275,7 @@ function ProgressCard({
         {hasClaimedAllAvailableRewards ? (
           <div className="next-reward is-complete">
             <div className="next-reward-thumb">
-              <img src="/m-card/reward-complete.png" alt="" />
+              <img src="/m-card/reward-complete.png" alt="" onError={handleRewardImageError} />
             </div>
             <div className="next-reward-text">
               <p>รับครบแล้ว</p>
@@ -1275,9 +1288,17 @@ function ProgressCard({
         ) : (
           <div className="next-reward">
             <div className="next-reward-thumb">
-              <img src={displayReward.progressImage ?? displayReward.image} alt="" />
+              <img
+                src={displayReward.progressImage ?? displayReward.image}
+                alt=""
+                onError={handleRewardImageError}
+              />
               {displayReward.progressImageOverlay && (
-                <img src={displayReward.progressImageOverlay} alt="" />
+                <img
+                  src={displayReward.progressImageOverlay}
+                  alt=""
+                  onError={handleRewardImageError}
+                />
               )}
             </div>
             <div className="next-reward-text">
@@ -1442,7 +1463,7 @@ function getSnakeRowProgress(rowIndex: number, stars: number) {
 }
 
 function getTrackPoints(stars: number): TrackPoint[] {
-  if (stars >= 18) {
+  if (stars >= 17) {
     return [
       { threshold: 12, label: "12 ดวง", kind: "reward" },
       { threshold: 15, label: "15 ดวง", kind: "reward" },
@@ -1460,7 +1481,7 @@ function getTrackPoints(stars: number): TrackPoint[] {
     ];
   }
 
-  if (stars >= 8) {
+  if (stars >= 7) {
     return [
       { threshold: 5, label: "5 ดวง", kind: "reward" },
       { threshold: 7, label: "7 ดวง", kind: "reward" },

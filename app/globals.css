@@ -876,7 +876,8 @@ button {
 .next-reward {
   align-items: center;
   display: flex;
-  gap: 12px;
+  gap: 14px;
+  min-height: 64px;
   overflow: hidden;
   width: 100%;
 }
@@ -884,10 +885,10 @@ button {
 .next-reward-thumb {
   border-radius: 8px;
   flex-shrink: 0;
-  height: 44px;
+  height: 64px;
   overflow: hidden;
   position: relative;
-  width: 44px;
+  width: 64px;
 }
 
 .next-reward-thumb img {
@@ -911,7 +912,7 @@ button {
 
 .next-reward-text p {
   color: var(--muted);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
   line-height: 16px;
   margin: 0;
@@ -919,9 +920,9 @@ button {
 
 .next-reward-text h4 {
   color: #252525;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
-  line-height: 20px;
+  line-height: 21px;
   margin: 0;
 }
 
@@ -934,12 +935,12 @@ button {
   cursor: pointer;
   display: flex;
   flex-shrink: 0;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
-  height: 32px;
+  height: 36px;
   justify-content: center;
   line-height: 18px;
-  padding: 0 12px;
+  padding: 0 14px;
   white-space: nowrap;
 }
 
@@ -1849,16 +1850,17 @@ button {
 
 .reward-card {
   display: flex;
-  gap: 8px;
-  min-height: 100px;
+  gap: 12px;
+  min-height: clamp(112px, 34vw, 148px);
 }
 
 .reward-image {
+  aspect-ratio: 1 / 1;
   border-radius: 8px;
   display: block;
-  height: 100px;
+  height: clamp(112px, 34vw, 148px);
   object-fit: cover;
-  width: 100px;
+  width: clamp(112px, 34vw, 148px);
 }
 
 .reward-detail {
