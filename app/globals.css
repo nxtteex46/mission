@@ -127,40 +127,6 @@ button {
   padding: 63px 16px 28px;
 }
 
-.promo-banner {
-  align-items: center;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.promo-banner img {
-  border-radius: 16px;
-  display: block;
-  height: 135px;
-  object-fit: cover;
-  width: 100%;
-}
-
-.banner-dots {
-  align-items: center;
-  display: flex;
-  gap: 4px;
-}
-
-.banner-dots span {
-  background: #e3e3e3;
-  border-radius: 9999px;
-  display: block;
-  height: 6px;
-  width: 6px;
-}
-
-.banner-dots .active {
-  background: #252525;
-  width: 16px;
-}
-
 .segmented-tabs {
   background: #f5f5f5;
   border-radius: 20px;

@@ -924,15 +924,6 @@ function MissionListPage({
 
   return (
     <div className="mission-list-page">
-      <section className="promo-banner" aria-label="โปรโมชัน">
-        <img src="/m-card/list-banner.png" alt="" />
-        <div className="banner-dots" aria-hidden="true">
-          <span className="active" />
-          <span />
-          <span />
-        </div>
-      </section>
-
       <div
         className={`segmented-tabs ${showingJoinedOnly ? "is-joined-active" : "is-all-active"}`}
         role="tablist"
