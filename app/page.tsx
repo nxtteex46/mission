@@ -151,6 +151,7 @@ export default function Home() {
   const [starBadgeEffect, setStarBadgeEffect] = useState<{ id: number } | null>(null);
   const [gourmetSpend, setGourmetSpend] = useState(0);
   const [claimedGourmetThresholds, setClaimedGourmetThresholds] = useState<number[]>([]);
+  const [cardLayout, setCardLayout] = useState<"default" | "wide">("default");
 
   useEffect(() => {
     if (!starBadgeEffect) {
@@ -241,13 +242,16 @@ export default function Home() {
               </svg>
             </button>
             <h1>{screen === "detail" ? "รายละเอียดภารกิจ" : "Shop Mission"}</h1>
+            {screen === "list" && (
+              <CardLayoutToggle cardLayout={cardLayout} onChange={setCardLayout} />
+            )}
           </header>
         </div>
 
         {screen === "detail" && selectedMission === "eatventure" ? (
           <>
             <img
-              src="/m-card/offer.png"
+              src="/m-card/list-banner.png"
               alt="The Mall Lifestore Eatventure promotion"
               className="offer-image"
             />
@@ -370,6 +374,7 @@ export default function Home() {
               gourmetSpend={gourmetSpend}
               onOpenDetail={() => openMissionDetail("eatventure")}
               onOpenMissionDetail={openMissionDetail}
+              cardLayout={cardLayout}
               stars={stars}
             />
           )
@@ -846,7 +851,51 @@ function GourmetMiniProgress({ currentSpend }: { currentSpend: number }) {
   );
 }
 
+function CardLayoutToggle({
+  cardLayout,
+  onChange,
+}: {
+  cardLayout: "default" | "wide";
+  onChange: (layout: "default" | "wide") => void;
+}) {
+  const showingWideCards = cardLayout === "wide";
+
+  return (
+    <div
+      className={`card-layout-toggle ${showingWideCards ? "is-wide-active" : "is-default-active"}`}
+      aria-label="รูปแบบการ์ด"
+    >
+      <span className="card-layout-toggle-indicator" aria-hidden="true" />
+      <button
+        aria-label="แสดงการ์ดเดิม"
+        className={showingWideCards ? "" : "active"}
+        type="button"
+        onClick={() => onChange("default")}
+      >
+        <span className="layout-icon layout-icon-card" aria-hidden="true">
+          <i />
+          <b />
+          <b />
+        </span>
+        <span className="sr-only">การ์ดเดิม</span>
+      </button>
+      <button
+        aria-label="แสดงรูปแนวนอน"
+        className={showingWideCards ? "active" : ""}
+        type="button"
+        onClick={() => onChange("wide")}
+      >
+        <span className="layout-icon layout-icon-wide" aria-hidden="true">
+          <i />
+        </span>
+        <span className="sr-only">รูปแนวนอน</span>
+      </button>
+    </div>
+  );
+}
+
 function MissionListPage({
+  cardLayout,
   gourmetJoined,
   gourmetSpend,
   joined,
@@ -854,6 +903,7 @@ function MissionListPage({
   onOpenDetail,
   stars,
 }: {
+  cardLayout: "default" | "wide";
   gourmetJoined: boolean;
   gourmetSpend: number;
   joined: boolean;
@@ -863,6 +913,7 @@ function MissionListPage({
 }) {
   const [activeTab, setActiveTab] = useState<"all" | "joined">("all");
   const showingJoinedOnly = activeTab === "joined";
+  const showingWideCards = cardLayout === "wide";
   const joinedMissionCount = Number(joined) + Number(gourmetJoined);
   const visibleMissionCards = showingJoinedOnly
     ? missionCards.filter((mission) => mission.id === "gourmet" && gourmetJoined)
@@ -905,7 +956,10 @@ function MissionListPage({
         </button>
       </div>
 
-      <section className="mission-list" aria-label="รายการภารกิจ">
+      <section
+        className={`mission-list ${showingWideCards ? "is-wide-card-layout" : ""}`}
+        aria-label="รายการภารกิจ"
+      >
         {visibleMissionCards.map((mission) => {
           const isGourmet = mission.id === "gourmet";
           const isMissionJoined = isGourmet && gourmetJoined;
@@ -953,6 +1007,7 @@ function MissionListPage({
 
         {(!showingJoinedOnly || joined) && (
           <EatventureMissionCard
+            wide={showingWideCards}
             joined={joined}
             onOpenDetail={onOpenDetail}
             stars={stars}
@@ -973,10 +1028,12 @@ function EatventureMissionCard({
   joined,
   onOpenDetail,
   stars,
+  wide = false,
 }: {
   joined: boolean;
   onOpenDetail: () => void;
   stars: number;
+  wide?: boolean;
 }) {
   const trackPoints = getTrackPoints(stars);
   const progressPercent = getTrackProgressPercent(stars, trackPoints);
@@ -986,9 +1043,9 @@ function EatventureMissionCard({
   const trackRange = hasMoreTiers ? "100% - 70px" : "100% - 28px";
 
   return (
-    <article className="mission-card is-featured" onClick={onOpenDetail}>
+    <article className={`mission-card is-featured ${wide ? "is-wide-card" : ""}`} onClick={onOpenDetail}>
       <div className="mission-card-header">
-        <img src="/m-card/mission-eatventure.png" alt="" />
+        <img src="/m-card/list-banner.png" alt="" />
         <div>
           <h2>THE MALL LIFESTORE EATVENTURE</h2>
           <p>16 – 31 ก.ค. 69</p>
