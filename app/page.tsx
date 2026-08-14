@@ -251,7 +251,7 @@ export default function Home() {
         {screen === "detail" && selectedMission === "eatventure" ? (
           <>
             <img
-              src="/m-card/list-banner.png"
+              src="/m-card/offer.png"
               alt="The Mall Lifestore Eatventure promotion"
               className="offer-image"
             />
@@ -408,6 +408,7 @@ export default function Home() {
 const missionCards = [
   {
     image: "/m-card/mission-sabina.png",
+    wideImage: "/m-card/sabina-wide-banner.png",
     title: "SABINA STAR CATCHER\nภารกิจพิชิตดาว",
     date: "1 มิ.ย. 69 – 31 ส.ค. 69",
     remaining: "ของรางวัลคงเหลือรวม 31 สิทธิ์",
@@ -416,6 +417,7 @@ const missionCards = [
   {
     id: "gourmet",
     image: "/m-card/mission-gourmet.png",
+    wideImage: "/m-card/gourmet-eats-hero.png",
     title: "GOURMET EATS ช้อปครบ 3 ระดับ\nรับรางวัลสุดคุ้ม",
     date: "1 ส.ค. 69 – 31 ต.ค. 69",
     remaining: "ของรางวัลคงเหลือรวม 1,240 สิทธิ์",
@@ -423,6 +425,7 @@ const missionCards = [
   },
   {
     image: "/m-card/mission-food-waste.png",
+    wideImage: "/m-card/food-waste-wide-banner.png",
     title: "STOP FOOD WASTE กินดี รักษ์โลก\nรับโชคเพิ่ม",
     date: "5 มิ.ย. 69 – 31 ส.ค. 69",
     remaining: "ของรางวัลคงเหลือรวม 5,752 สิทธิ์",
@@ -963,6 +966,7 @@ function MissionListPage({
         {visibleMissionCards.map((mission) => {
           const isGourmet = mission.id === "gourmet";
           const isMissionJoined = isGourmet && gourmetJoined;
+          const missionImage = showingWideCards ? (mission.wideImage ?? mission.image) : mission.image;
 
           return (
           <article
@@ -975,7 +979,7 @@ function MissionListPage({
             }}
           >
             <div className="mission-card-header">
-              <img src={mission.image} alt="" />
+              <img src={missionImage} alt="" />
               <div>
                 <h2>{mission.title}</h2>
                 <p>{mission.date}</p>
@@ -1045,7 +1049,7 @@ function EatventureMissionCard({
   return (
     <article className={`mission-card is-featured ${wide ? "is-wide-card" : ""}`} onClick={onOpenDetail}>
       <div className="mission-card-header">
-        <img src="/m-card/list-banner.png" alt="" />
+        <img src={wide ? "/m-card/list-banner.png" : "/m-card/mission-eatventure.png"} alt="" />
         <div>
           <h2>THE MALL LIFESTORE EATVENTURE</h2>
           <p>16 – 31 ก.ค. 69</p>
